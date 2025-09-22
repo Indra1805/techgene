@@ -1,4 +1,3 @@
-// lib/supabaseServer.ts
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 // Read environment variables
@@ -13,7 +12,10 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   );
 }
 
-// Export a function to create the Supabase client
+// ✅ Tell TS: these are now guaranteed strings
 export function createClient() {
-  return createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return createSupabaseClient(
+    SUPABASE_URL as string,
+    SUPABASE_ANON_KEY as string
+  );
 }
