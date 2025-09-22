@@ -34,7 +34,8 @@ export default function CreatePasscodePage() {
         body: JSON.stringify({ user_id, passcode }),
       });
 
-      const data = await res.json();
+      type ApiResponse = { success: boolean; error?: string };
+      const data: ApiResponse = await res.json();
       setLoading(false);
 
       if (data.success) {
@@ -42,9 +43,13 @@ export default function CreatePasscodePage() {
       } else {
         setMessage(data.error || "Failed to create passcode");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLoading(false);
-      setMessage(err?.message || "An unexpected error occurred");
+      if (err instanceof Error) {
+        setMessage(err.message);
+      } else {
+        setMessage("An unexpected error occurred");
+      }
     }
   };
 
