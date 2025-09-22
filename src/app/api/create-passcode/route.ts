@@ -12,17 +12,21 @@ export async function POST(req: NextRequest) {
     const { user_id, passcode } = body;
 
     if (!user_id || !passcode) {
-      return NextResponse.json({ success: false, error: "User ID and passcode required" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "User ID and passcode required" },
+        { status: 400 }
+      );
     }
 
-    const { error } = await supabase.from("passcodes").upsert({ user_id, passcode });
+    const { error } = await supabase
+      .from("passcodes")
+      .upsert({ user_id, passcode });
 
-    if (error) throw error;
+    if (error) throw new Error(error.message);
 
     return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    let message = "Unknown error";
-    if (err instanceof Error) message = err.message;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

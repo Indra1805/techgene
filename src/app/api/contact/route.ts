@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "../../../lib/supabaseClient";
 
 export async function POST(req: NextRequest) {
-  const { name, email, message } = await req.json();
-
-  const { data, error } = await supabase
-    .from("contacts")
-    .insert([{ name, email, message }]);
-
-  if (error) {
-    return NextResponse.json({ success: false, message: error.message }, { status: 400 });
+  try {
+    const body = await req.json();
+    // previously: const data = body;
+    return NextResponse.json({ success: true, body });
+  } catch (error) {
+    return NextResponse.json({ success: false, error }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true, message: "Message saved to Supabase!" });
 }
