@@ -1,10 +1,19 @@
 // src/app/api/courses/route.ts
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabaseServer";
+import { createClient } from "@/lib/supabaseServer";
+
+type Course = {
+  id: string;
+  title: string;
+  description: string;
+  image_url?: string;
+};
 
 export async function GET() {
-  const { data, error } = await supabaseServer
-    .from("courses")
+  const supabase = createClient(); // ✅ call the function
+
+  const { data, error } = await supabase
+    .from<"courses", Course>("courses")
     .select("*")
     .order("created_at", { ascending: false });
 
