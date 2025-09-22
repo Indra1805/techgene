@@ -1,8 +1,5 @@
 // src/lib/supabaseClient.ts
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { getEnvVar } from "./env";
+import { env } from "./env";
 
-const SUPABASE_URL = getEnvVar("NEXT_PUBLIC_SUPABASE_URL");
-const SUPABASE_ANON_KEY = getEnvVar("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-
-export const supabase = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createSupabaseClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
