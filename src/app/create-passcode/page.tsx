@@ -1,11 +1,11 @@
-"use client";
+"use client"; // THIS MAKES IT A CLIENT COMPONENT
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function CreatePasscodePage() {
   const searchParams = useSearchParams();
-  const user_id = searchParams.get("user_id") || "";
+  const user_id = searchParams?.get("user_id") || "";
   const [passcode, setPasscode] = useState("");
   const [confirmPasscode, setConfirmPasscode] = useState("");
   const [message, setMessage] = useState("");
@@ -15,13 +15,11 @@ export default function CreatePasscodePage() {
   const handleCreatePasscode = async () => {
     setMessage("");
 
-    // Validate matching passcodes
     if (passcode !== confirmPasscode) {
       setMessage("Passcodes do not match");
       return;
     }
 
-    // Validate 6-digit numeric passcode
     if (!/^\d{6}$/.test(passcode)) {
       setMessage("Passcode must be 6 digits");
       return;
@@ -44,9 +42,9 @@ export default function CreatePasscodePage() {
       } else {
         setMessage(data.error || "Failed to create passcode");
       }
-    } catch (err) {
+    } catch (err: any) {
       setLoading(false);
-      setMessage("An unexpected error occurred");
+      setMessage(err?.message || "An unexpected error occurred");
     }
   };
 

@@ -1,4 +1,4 @@
-import { supabaseServer } from "@/lib/supabaseServer";
+import { createClient } from "@/lib/supabaseServer"; // server-side client
 
 type Course = {
   id: string;
@@ -8,8 +8,11 @@ type Course = {
 };
 
 export default async function CoursesPage() {
-  const { data: courses, error } = await supabaseServer
-    .from("courses")
+  const supabase = createClient();
+
+  // Fetch data server-side
+  const { data: courses, error } = await supabase
+    .from<"courses", Course>("courses")
     .select("*")
     .order("created_at", { ascending: false });
 
@@ -34,7 +37,7 @@ export default async function CoursesPage() {
       </h1>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {courses.map((course: Course) => (
+        {courses.map((course) => (
           <div
             key={course.id}
             className="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-2xl"
