@@ -1,5 +1,8 @@
 // src/lib/supabaseServer.ts
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { env } from "./env";
+import { createClient } from "@supabase/supabase-js";
 
-export const supabaseServer = createSupabaseClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!; // server only
+
+// Server-side Supabase client
+export const supabaseServer = createClient(url, serviceKey);

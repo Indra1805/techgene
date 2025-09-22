@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabaseServer"; // server-side client
+import { supabaseServer } from "@/lib/supabaseServer";
 
 type Course = {
   id: string;
@@ -8,10 +8,10 @@ type Course = {
 };
 
 export default async function CoursesPage() {
-  const supabase = createClient();
-
-  // Fetch directly on the server
-  const { data: courses, error } = await supabase.from("courses").select("*");
+  const { data: courses, error } = await supabaseServer
+    .from("courses")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   if (error) {
     return (
