@@ -13,34 +13,49 @@ export default function CreatePasscodePage() {
   const router = useRouter();
 
   const handleCreatePasscode = async () => {
+    setMessage("");
+
+    // Validate matching passcodes
     if (passcode !== confirmPasscode) {
       setMessage("Passcodes do not match");
       return;
     }
+
+    // Validate 6-digit numeric passcode
     if (!/^\d{6}$/.test(passcode)) {
       setMessage("Passcode must be 6 digits");
       return;
     }
 
     setLoading(true);
-    const res = await fetch("/api/create-passcode", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id, passcode }),
-    });
-    const data = await res.json();
-    setLoading(false);
 
-    if (data.success) {
-      router.push("/login");
-    } else {
-      setMessage(data.error || "Failed to create passcode");
+    try {
+      const res = await fetch("/api/create-passcode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id, passcode }),
+      });
+
+      const data = await res.json();
+      setLoading(false);
+
+      if (data.success) {
+        router.push("/login");
+      } else {
+        setMessage(data.error || "Failed to create passcode");
+      }
+    } catch (err) {
+      setLoading(false);
+      setMessage("An unexpected error occurred");
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
-      <h1 className="text-2xl font-bold mb-4">Create Your 6-digit Passcode</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">
+        Create Your 6-digit Passcode
+      </h1>
+
       <input
         type="password"
         placeholder="Enter passcode"
@@ -49,6 +64,7 @@ export default function CreatePasscodePage() {
         className="border rounded px-4 py-2 mb-2 w-full max-w-xs text-center"
         maxLength={6}
       />
+
       <input
         type="password"
         placeholder="Confirm passcode"
@@ -57,14 +73,18 @@ export default function CreatePasscodePage() {
         className="border rounded px-4 py-2 mb-4 w-full max-w-xs text-center"
         maxLength={6}
       />
+
       <button
         onClick={handleCreatePasscode}
         disabled={loading}
-        className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700"
+        className={`px-6 py-2 rounded text-white ${
+          loading ? "bg-gray-400 cursor-not-allowed" : "bg-purple-600 hover:bg-purple-700"
+        }`}
       >
         {loading ? "Saving..." : "Create Passcode"}
       </button>
-      {message && <p className="mt-4 text-red-600">{message}</p>}
+
+      {message && <p className="mt-4 text-red-600 text-center">{message}</p>}
     </div>
   );
 }
