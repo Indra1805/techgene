@@ -1,4 +1,4 @@
-"use client";
+"use client"; // MUST be client component
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -34,8 +34,7 @@ export default function CreatePasscodeClient() {
         body: JSON.stringify({ user_id, passcode }),
       });
 
-      type ApiResponse = { success: boolean; error?: string };
-      const data: ApiResponse = await res.json();
+      const data = await res.json();
       setLoading(false);
 
       if (data.success) {
@@ -45,11 +44,8 @@ export default function CreatePasscodeClient() {
       }
     } catch (err: unknown) {
       setLoading(false);
-      if (err instanceof Error) {
-        setMessage(err.message);
-      } else {
-        setMessage("An unexpected error occurred");
-      }
+      if (err instanceof Error) setMessage(err.message);
+      else setMessage("An unexpected error occurred");
     }
   };
 
