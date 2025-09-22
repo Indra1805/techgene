@@ -1,16 +1,17 @@
-"use client"; // MUST be client component
+"use client"; // Client component
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function CreatePasscodeClient() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams();       // ✅ client-only hook
   const user_id = searchParams?.get("user_id") || "";
+  const router = useRouter();
+
   const [passcode, setPasscode] = useState("");
   const [confirmPasscode, setConfirmPasscode] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleCreatePasscode = async () => {
     setMessage("");
