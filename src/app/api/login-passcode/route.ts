@@ -1,5 +1,6 @@
+// src/app/api/login-passcode/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabaseServer";
 
 type LoginPasscodeRequest = {
   user_id: string;
@@ -8,7 +9,7 @@ type LoginPasscodeRequest = {
 
 export async function POST(req: NextRequest) {
   try {
-    const body: LoginPasscodeRequest = await req.json();
+    const body = (await req.json()) as LoginPasscodeRequest;
     const { user_id, passcode } = body;
 
     if (!user_id || !passcode) {
@@ -18,22 +19,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const supabase = createClient();
+
     const { data, error } = await supabase
       .from("passcodes")
       .select("*")
       .eq("user_id", user_id)
       .eq("passcode", passcode)
+      .limit(1)
       .single();
 
     if (error || !data) {
-      return NextResponse.json(
-        { success: false, error: "Invalid passcode" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Invalid passcode" }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
+    // Optionally: create a session, issue a cookie/JWT here.
+    return NextResponse.json({ success: true, user: { id: user_id } });
+  } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }

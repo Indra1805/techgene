@@ -1,5 +1,6 @@
+// src/app/api/create-passcode/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabaseServer";
 
 type CreatePasscodeRequest = {
   user_id: string;
@@ -8,7 +9,7 @@ type CreatePasscodeRequest = {
 
 export async function POST(req: NextRequest) {
   try {
-    const body: CreatePasscodeRequest = await req.json();
+    const body = (await req.json()) as CreatePasscodeRequest;
     const { user_id, passcode } = body;
 
     if (!user_id || !passcode) {
@@ -18,14 +19,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { error } = await supabase
-      .from("passcodes")
-      .upsert({ user_id, passcode });
+    const supabase = createClient();
+
+    const { error } = await supabase.from("passcodes").upsert({ user_id, passcode });
 
     if (error) throw new Error(error.message);
 
     return NextResponse.json({ success: true });
-  } catch (err) {
+  } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }

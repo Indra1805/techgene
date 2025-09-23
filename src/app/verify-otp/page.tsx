@@ -1,21 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function VerifyOTPPage() {
+  const router = useRouter();
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const router = useRouter();
 
-  // ✅ Safely get phone from query string using window.location
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      setPhone(params.get("phone") || "");
-    }
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    setPhone(params.get("phone") || "");
   }, []);
 
   const handleVerifyOTP = async () => {
@@ -31,26 +29,25 @@ export default function VerifyOTPPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone, token: otp }),
       });
+
       const data = await res.json();
       setLoading(false);
 
       if (data.success) {
-        router.push(
-          `/create-passcode?user_id=${encodeURIComponent(data.user.id)}`
-        );
+        router.push(`/create-passcode?user_id=${encodeURIComponent(data.user.id)}`);
       } else {
         setMessage(data.error || "Invalid OTP");
       }
-    } catch (err) {
+    } catch (err: unknown) {
       setLoading(false);
-      setMessage("Something went wrong");
+      setMessage(err instanceof Error ? err.message : "Unexpected error");
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
       <h1 className="text-2xl font-bold mb-4">
-        Enter OTP {phone ? `sent to ${phone}` : ""}
+        Enter OTP sent to {phone || "your phone"}
       </h1>
       <input
         type="text"
@@ -62,7 +59,9 @@ export default function VerifyOTPPage() {
       <button
         onClick={handleVerifyOTP}
         disabled={loading}
-        className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+        className={`px-6 py-2 rounded text-white ${
+          loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+        }`}
       >
         {loading ? "Verifying..." : "Verify OTP"}
       </button>

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabaseServer"; // server-side client
+import { createClient } from "@/lib/supabaseServer";
 
 type Course = {
   id: string;
@@ -10,31 +10,24 @@ type Course = {
 export default async function CoursesPage() {
   const supabase = createClient();
 
-  // Fetch data server-side
-  const { data: courses, error } = await supabase
-    .from<"courses", Course>("courses")
+  const { data, error } = await supabase
+    .from("courses")
     .select("*")
     .order("created_at", { ascending: false });
 
   if (error) {
-    return (
-      <p className="text-center mt-8 text-red-600">
-        Error loading courses: {error.message}
-      </p>
-    );
+    return <p className="text-center mt-8 text-red-600">Error loading courses: {error.message}</p>;
   }
 
-  if (!courses || courses.length === 0) {
-    return (
-      <p className="text-center mt-8 text-gray-600">No courses available.</p>
-    );
+  const courses = (data ?? []) as Course[];
+
+  if (!courses.length) {
+    return <p className="text-center mt-8 text-gray-600">No courses available.</p>;
   }
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-3xl font-bold text-center mb-8 text-blue-600">
-        Available Courses
-      </h1>
+      <h1 className="text-3xl font-bold text-center mb-8 text-blue-600">Available Courses</h1>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {courses.map((course) => (

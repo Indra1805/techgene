@@ -11,41 +11,41 @@ export default function CreatePasscodePage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Read query params on client only
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      setUserId(params.get("user_id") || "");
-    }
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    setUserId(params.get("user_id") || "");
   }, []);
 
   const handleCreatePasscode = async () => {
     setMessage("");
 
+    if (!userId) {
+      setMessage("User ID missing");
+      return;
+    }
     if (passcode !== confirmPasscode) {
       setMessage("Passcodes do not match");
       return;
     }
-
     if (!/^\d{6}$/.test(passcode)) {
       setMessage("Passcode must be 6 digits");
       return;
     }
 
     setLoading(true);
-
     try {
       const res = await fetch("/api/create-passcode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userId, passcode }),
       });
-
       const data = await res.json();
       setLoading(false);
 
       if (data.success) {
-        router.push("/login");
+        // keep the user_id so login can work, or auto-redirect to login with the user_id
+        router.push(`/login?user_id=${encodeURIComponent(userId)}`);
       } else {
         setMessage(data.error || "Failed to create passcode");
       }
@@ -57,9 +57,7 @@ export default function CreatePasscodePage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
-      <h1 className="text-2xl font-bold mb-4 text-center">
-        Create Your 6-digit Passcode
-      </h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">Create Your 6-digit Passcode</h1>
 
       <input
         type="password"
@@ -83,9 +81,7 @@ export default function CreatePasscodePage() {
         onClick={handleCreatePasscode}
         disabled={loading}
         className={`px-6 py-2 rounded text-white ${
-          loading
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-purple-600 hover:bg-purple-700"
+          loading ? "bg-gray-400 cursor-not-allowed" : "bg-purple-600 hover:bg-purple-700"
         }`}
       >
         {loading ? "Saving..." : "Create Passcode"}

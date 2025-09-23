@@ -2,27 +2,22 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabaseServer";
 
-type Course = {
-  id: string;
-  title: string;
-  description: string;
-  image_url?: string;
-};
-
 export async function GET() {
-  const supabase = createClient(); // ✅ call the function
+  try {
+    const supabase = createClient();
 
-  const { data, error } = await supabase
-    .from<"courses", Course>("courses")
-    .select("*")
-    .order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("courses")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 400 }
-    );
+    if (error) {
+      return NextResponse.json({ success: false, message: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true, courses: data ?? [] });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true, courses: data });
 }
