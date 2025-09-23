@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     const res = await fetch(
-      `https://2factor.in/API/V1/${apiKey}/SMS/${phone}/${otp}/Techgene`,
+      `https://2factor.in/API/V1/${apiKey}/SMS/${phone}/${otp}/TECHGE`,
       { method: "GET" }
     );
 
