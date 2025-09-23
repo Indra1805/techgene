@@ -4,15 +4,15 @@ import { createClient } from "@/lib/supabaseServer";
 
 type LoginPasscodeRequest = {
   user_id: string;
-  passcode: string;
+  passcode_hash: string;
 };
 
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as LoginPasscodeRequest;
-    const { user_id, passcode } = body;
+    const { user_id, passcode_hash } = body;
 
-    if (!user_id || !passcode) {
+    if (!user_id || !passcode_hash) {
       return NextResponse.json(
         { success: false, error: "User ID and passcode required" },
         { status: 400 }
@@ -22,10 +22,10 @@ export async function POST(req: NextRequest) {
     const supabase = createClient();
 
     const { data, error } = await supabase
-      .from("passcodes")
+      .from("user_passcodes")
       .select("*")
       .eq("user_id", user_id)
-      .eq("passcode", passcode)
+      .eq("passcode_hash", passcode_hash)
       .limit(1)
       .single();
 

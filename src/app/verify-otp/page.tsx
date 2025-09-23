@@ -17,10 +17,7 @@ export default function VerifyOTPPage() {
   }, []);
 
   const handleVerifyOTP = async () => {
-    if (!otp) {
-      setMessage("Enter the OTP");
-      return;
-    }
+    if (!otp) return setMessage("Enter the OTP");
 
     setLoading(true);
     try {
@@ -29,12 +26,13 @@ export default function VerifyOTPPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone, token: otp }),
       });
-
       const data = await res.json();
       setLoading(false);
 
       if (data.success) {
-        router.push(`/create-passcode?user_id=${encodeURIComponent(data.user.id)}`);
+        // Store user_id in localStorage
+        localStorage.setItem("user_id", data.user.id);
+        router.push("/create-passcode"); // No need to pass user_id via URL
       } else {
         setMessage(data.error || "Invalid OTP");
       }

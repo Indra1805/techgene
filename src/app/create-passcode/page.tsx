@@ -13,39 +13,30 @@ export default function CreatePasscodePage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    setUserId(params.get("user_id") || "");
+    const storedUserId = localStorage.getItem("user_id");
+    if (storedUserId) setUserId(storedUserId);
+    else setMessage("User ID missing. Please verify OTP again.");
   }, []);
 
   const handleCreatePasscode = async () => {
     setMessage("");
 
-    if (!userId) {
-      setMessage("User ID missing");
-      return;
-    }
-    if (passcode !== confirmPasscode) {
-      setMessage("Passcodes do not match");
-      return;
-    }
-    if (!/^\d{6}$/.test(passcode)) {
-      setMessage("Passcode must be 6 digits");
-      return;
-    }
+    if (!userId) return;
+    if (passcode !== confirmPasscode) return setMessage("Passcodes do not match");
+    if (!/^\d{6}$/.test(passcode)) return setMessage("Passcode must be 6 digits");
 
     setLoading(true);
     try {
       const res = await fetch("/api/create-passcode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, passcode }),
+        body: JSON.stringify({ user_id: userId, passcode_hash: passcode }),
       });
       const data = await res.json();
       setLoading(false);
 
       if (data.success) {
-        // keep the user_id so login can work, or auto-redirect to login with the user_id
-        router.push(`/login?user_id=${encodeURIComponent(userId)}`);
+        router.push("/login"); // No need to pass user_id via URL
       } else {
         setMessage(data.error || "Failed to create passcode");
       }
@@ -58,7 +49,6 @@ export default function CreatePasscodePage() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
       <h1 className="text-2xl font-bold mb-4 text-center">Create Your 6-digit Passcode</h1>
-
       <input
         type="password"
         placeholder="Enter passcode"
@@ -67,7 +57,6 @@ export default function CreatePasscodePage() {
         className="border rounded px-4 py-2 mb-2 w-full max-w-xs text-center"
         maxLength={6}
       />
-
       <input
         type="password"
         placeholder="Confirm passcode"
@@ -76,7 +65,6 @@ export default function CreatePasscodePage() {
         className="border rounded px-4 py-2 mb-4 w-full max-w-xs text-center"
         maxLength={6}
       />
-
       <button
         onClick={handleCreatePasscode}
         disabled={loading}
@@ -86,7 +74,6 @@ export default function CreatePasscodePage() {
       >
         {loading ? "Saving..." : "Create Passcode"}
       </button>
-
       {message && <p className="mt-4 text-red-600 text-center">{message}</p>}
     </div>
   );
