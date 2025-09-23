@@ -1,6 +1,6 @@
-"use client"; // 🚀 Forcefully mark page as client component
+"use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function CreatePasscodePage() {
@@ -11,41 +11,44 @@ export default function CreatePasscodePage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Read query param client-side, no SSR
+  // ✅ Read query params on client only
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("user_id") || "";
-    setUserId(id);
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      setUserId(params.get("user_id") || "");
+    }
   }, []);
 
   const handleCreatePasscode = async () => {
     setMessage("");
 
-    if (!userId) {
-      setMessage("User ID missing");
-      return;
-    }
     if (passcode !== confirmPasscode) {
       setMessage("Passcodes do not match");
       return;
     }
+
     if (!/^\d{6}$/.test(passcode)) {
       setMessage("Passcode must be 6 digits");
       return;
     }
 
     setLoading(true);
+
     try {
       const res = await fetch("/api/create-passcode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userId, passcode }),
       });
+
       const data = await res.json();
       setLoading(false);
 
-      if (data.success) router.push("/login");
-      else setMessage(data.error || "Failed to create passcode");
+      if (data.success) {
+        router.push("/login");
+      } else {
+        setMessage(data.error || "Failed to create passcode");
+      }
     } catch (err: unknown) {
       setLoading(false);
       setMessage(err instanceof Error ? err.message : "Unexpected error");
@@ -54,7 +57,10 @@ export default function CreatePasscodePage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
-      <h1 className="text-2xl font-bold mb-4 text-center">Create Your 6-digit Passcode</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">
+        Create Your 6-digit Passcode
+      </h1>
+
       <input
         type="password"
         placeholder="Enter passcode"
@@ -63,6 +69,7 @@ export default function CreatePasscodePage() {
         className="border rounded px-4 py-2 mb-2 w-full max-w-xs text-center"
         maxLength={6}
       />
+
       <input
         type="password"
         placeholder="Confirm passcode"
@@ -71,6 +78,7 @@ export default function CreatePasscodePage() {
         className="border rounded px-4 py-2 mb-4 w-full max-w-xs text-center"
         maxLength={6}
       />
+
       <button
         onClick={handleCreatePasscode}
         disabled={loading}
@@ -82,6 +90,7 @@ export default function CreatePasscodePage() {
       >
         {loading ? "Saving..." : "Create Passcode"}
       </button>
+
       {message && <p className="mt-4 text-red-600 text-center">{message}</p>}
     </div>
   );
