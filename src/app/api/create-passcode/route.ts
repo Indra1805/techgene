@@ -1,27 +1,15 @@
-// src/app/api/create-passcode/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabaseServer";
-
-type CreatePasscodeRequest = {
-  user_id: string;
-  passcode_hash: string; // 6-digit
-};
+import bcrypt from "bcrypt";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as CreatePasscodeRequest;
-    const { user_id, passcode_hash } = body;
+    const { phone, passcode } = await req.json();
+    if (!phone || !passcode) return NextResponse.json({ success: false, error: "Phone and passcode required" }, { status: 400 });
 
-    if (!user_id || !passcode_hash) {
-      return NextResponse.json(
-        { success: false, error: "User ID and passcode required" },
-        { status: 400 }
-      );
-    }
-
+    const hashedPasscode = await bcrypt.hash(passcode, 10);
     const supabase = createClient();
-
-    const { error } = await supabase.from("user_passcodes").upsert([{ user_id, passcode_hash }]);
+    const { error } = await supabase.from("user_passcodes").upsert([{ phone, passcode_hash: hashedPasscode }], { onConflict: "phone" });
 
     if (error) throw new Error(error.message);
 

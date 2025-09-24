@@ -1,40 +1,27 @@
-// src/app/api/login-passcode/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabaseServer";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-type LoginPasscodeRequest = {
-  user_id: string;
-  passcode_hash: string;
-};
+const JWT_SECRET = process.env.JWT_SECRET ?? "supersecret";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as LoginPasscodeRequest;
-    const { user_id, passcode_hash } = body;
-
-    if (!user_id || !passcode_hash) {
-      return NextResponse.json(
-        { success: false, error: "User ID and passcode required" },
-        { status: 400 }
-      );
-    }
+    const { phone, passcode } = await req.json();
+    if (!phone || !passcode) return NextResponse.json({ success: false, error: "Phone and passcode required" }, { status: 400 });
 
     const supabase = createClient();
+    const { data, error } = await supabase.from("user_passcodes").select("*").eq("phone", phone).single();
 
-    const { data, error } = await supabase
-      .from("user_passcodes")
-      .select("*")
-      .eq("user_id", user_id)
-      .eq("passcode_hash", passcode_hash)
-      .limit(1)
-      .single();
+    if (error || !data) return NextResponse.json({ success: false, error: "Invalid phone or passcode" }, { status: 401 });
 
-    if (error || !data) {
-      return NextResponse.json({ success: false, error: "Invalid passcode" }, { status: 400 });
-    }
+    const isMatch = await bcrypt.compare(passcode, data.passcode_hash);
+    if (!isMatch) return NextResponse.json({ success: false, error: "Invalid phone or passcode" }, { status: 401 });
 
-    // Optionally: create a session, issue a cookie/JWT here.
-    return NextResponse.json({ success: true, user: { id: user_id } });
+    const token = jwt.sign({ phone }, JWT_SECRET, { expiresIn: "7d" });
+
+    // Optionally, set httpOnly cookie
+    return NextResponse.json({ success: true, token });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });

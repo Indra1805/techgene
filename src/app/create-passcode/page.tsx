@@ -1,11 +1,10 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function CreatePasscodePage() {
   const router = useRouter();
-  const [userId, setUserId] = useState("");
+  const [phone, setPhone] = useState("");
   const [passcode, setPasscode] = useState("");
   const [confirmPasscode, setConfirmPasscode] = useState("");
   const [message, setMessage] = useState("");
@@ -13,33 +12,28 @@ export default function CreatePasscodePage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const storedUserId = localStorage.getItem("user_id");
-    if (storedUserId) setUserId(storedUserId);
-    else setMessage("User ID missing. Please verify OTP again.");
+    const params = new URLSearchParams(window.location.search);
+    const phoneParam = params.get("phone");
+    if (!phoneParam) setMessage("Phone missing. Go back and verify OTP again.");
+    else setPhone(phoneParam);
   }, []);
 
   const handleCreatePasscode = async () => {
-    setMessage("");
-
-    if (!userId) return;
-    if (passcode !== confirmPasscode) return setMessage("Passcodes do not match");
     if (!/^\d{6}$/.test(passcode)) return setMessage("Passcode must be 6 digits");
+    if (passcode !== confirmPasscode) return setMessage("Passcodes do not match");
 
     setLoading(true);
     try {
       const res = await fetch("/api/create-passcode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, passcode_hash: passcode }),
+        body: JSON.stringify({ phone, passcode }),
       });
       const data = await res.json();
       setLoading(false);
 
-      if (data.success) {
-        router.push("/login"); // No need to pass user_id via URL
-      } else {
-        setMessage(data.error || "Failed to create passcode");
-      }
+      if (data.success) router.push("/login");
+      else setMessage(data.error || "Failed to create passcode");
     } catch (err: unknown) {
       setLoading(false);
       setMessage(err instanceof Error ? err.message : "Unexpected error");

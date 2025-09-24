@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -13,11 +12,13 @@ export default function VerifyOTPPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    setPhone(params.get("phone") || "");
+    const phoneParam = params.get("phone");
+    if (!phoneParam) setMessage("Phone number missing. Go back and enter your number.");
+    else setPhone(phoneParam);
   }, []);
 
   const handleVerifyOTP = async () => {
-    if (!otp) return setMessage("Enter the OTP");
+    if (!otp.match(/^\d{6}$/)) return setMessage("Enter a valid 6-digit OTP");
 
     setLoading(true);
     try {
@@ -30,9 +31,8 @@ export default function VerifyOTPPage() {
       setLoading(false);
 
       if (data.success) {
-        // Store user_id in localStorage
-        localStorage.setItem("user_id", data.user.id);
-        router.push("/create-passcode"); // No need to pass user_id via URL
+        // Redirect to create passcode page with phone query param
+        router.push(`/create-passcode?phone=${encodeURIComponent(phone)}`);
       } else {
         setMessage(data.error || "Invalid OTP");
       }
@@ -44,16 +44,23 @@ export default function VerifyOTPPage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        Enter OTP sent to {phone || "your phone"}
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">Enter OTP sent to:</h1>
+      <input
+        type="text"
+        value={phone}
+        readOnly
+        className="border rounded px-4 py-2 mb-4 w-full max-w-xs text-center bg-gray-200 cursor-not-allowed"
+      />
+
       <input
         type="text"
         placeholder="6-digit OTP"
         value={otp}
-        onChange={(e) => setOtp(e.target.value)}
+        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
         className="border rounded px-4 py-2 mb-4 w-full max-w-xs text-center"
+        maxLength={6}
       />
+
       <button
         onClick={handleVerifyOTP}
         disabled={loading}
@@ -63,7 +70,8 @@ export default function VerifyOTPPage() {
       >
         {loading ? "Verifying..." : "Verify OTP"}
       </button>
-      {message && <p className="mt-4 text-red-600">{message}</p>}
+
+      {message && <p className="mt-4 text-red-600 text-center">{message}</p>}
     </div>
   );
 }
