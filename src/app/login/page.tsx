@@ -44,18 +44,59 @@ export default function LoginPage() {
     }
   };
 
+  // ✅ Handle Enter key for all inputs (works even if select is focused)
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter") {
+      handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
       <h1 className="text-2xl font-bold mb-4">Login with Your Passcode</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs">
+      <form
+        onSubmit={handleSubmit}
+        onKeyDown={handleKeyDown}
+        className="flex flex-col gap-4 w-full max-w-xs"
+      >
         <div className="flex w-full">
-          <select value={selectedCode} onChange={e => setSelectedCode(e.target.value)} className="border rounded-l px-1 py-2">
-            {countryCodes.map(c => <option key={c.code} value={c.code}>{c.country} ({c.code})</option>)}
+          <select
+            value={selectedCode}
+            onChange={e => setSelectedCode(e.target.value)}
+            className="border rounded-l px-1 py-2"
+            name="countryCode"
+          >
+            {countryCodes.map(c => (
+              <option key={c.code} value={c.code}>
+                {c.country} ({c.code})
+              </option>
+            ))}
           </select>
-          <input type="text" placeholder="Phone number" value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, ""))} className="border rounded-r px-4 py-2 flex-1"/>
+          <input
+            type="text"
+            name="phone"
+            placeholder="Phone number"
+            value={phone}
+            onChange={e => setPhone(e.target.value.replace(/\D/g, ""))}
+            className="border rounded-r px-4 py-2 flex-1"
+          />
         </div>
-        <input type="password" placeholder="6-digit passcode" value={passcode} onChange={e => setPasscode(e.target.value)} className="border rounded px-4 py-2 text-center" maxLength={6}/>
-        <button type="submit" disabled={loading} className={`px-6 py-2 rounded text-white w-full ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}>
+        <input
+          type="password"
+          name="passcode"
+          placeholder="6-digit passcode"
+          value={passcode}
+          onChange={e => setPasscode(e.target.value)}
+          className="border rounded px-4 py-2 text-center"
+          maxLength={6}
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className={`px-6 py-2 rounded text-white w-full ${
+            loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+          }`}
+        >
           {loading ? "Logging in..." : "Login"}
         </button>
       </form>

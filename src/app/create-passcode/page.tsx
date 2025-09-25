@@ -36,12 +36,30 @@ export default function CreatePasscodePage() {
     }
   };
 
+  // ✅ Handle Enter key anywhere in the form
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter") {
+      handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
       <h1 className="text-2xl font-bold mb-4">Set a 6-digit passcode</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
-        <input type="password" maxLength={6} placeholder="******" value={passcode} onChange={e => setPasscode(e.target.value)} className="border rounded px-4 py-2 text-center"/>
-        <button type="submit" disabled={loading} className={`px-6 py-2 rounded text-white ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}>
+      <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="flex flex-col items-center gap-4">
+        <input
+          type="password"
+          maxLength={6}
+          placeholder="******"
+          value={passcode}
+          onChange={(e) => setPasscode(e.target.value)}
+          className="border rounded px-4 py-2 text-center"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className={`px-6 py-2 rounded text-white ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}
+        >
           {loading ? "Saving..." : "Save Passcode"}
         </button>
       </form>

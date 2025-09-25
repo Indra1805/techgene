@@ -42,12 +42,20 @@ export default function VerifyOTPPage() {
     }
   };
 
+  // ✅ Submit form when Enter is pressed anywhere
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter") {
+      handleSubmit(e as unknown as React.FormEvent);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
       <h1 className="text-2xl font-bold mb-4">Enter OTP sent to {phone}</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 items-center">
+      <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="flex flex-col gap-4 items-center">
         <input
           type="text"
+          name="otp"
           placeholder="6-digit OTP"
           value={otp}
           onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}

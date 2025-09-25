@@ -41,22 +41,35 @@ export default function OTPPage() {
     }
   };
 
+  // ✅ Handle Enter key globally inside the form
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter") {
+      handleSubmit(e as unknown as React.FormEvent);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
       <h1 className="text-2xl font-bold mb-4">Enter your phone number</h1>
-      <form onSubmit={handleSubmit} className="flex gap-2 items-center">
+      <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="flex gap-2 items-center">
         <select
+          name="countryCode"
           value={countryCode}
-          onChange={(e) => setCountryCode(e.target.value)}
+          onChange={e => setCountryCode(e.target.value)}
           className="border rounded-l px-2 py-2"
         >
-          {countryCodes.map(c => <option key={c.code} value={c.code}>{c.country} ({c.code})</option>)}
+          {countryCodes.map(c => (
+            <option key={c.code} value={c.code}>
+              {c.country} ({c.code})
+            </option>
+          ))}
         </select>
         <input
           type="tel"
+          name="phone"
           placeholder="Phone number"
           value={phone}
-          onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+          onChange={e => setPhone(e.target.value.replace(/\D/g, ""))}
           className="border rounded-r px-4 py-2"
         />
         <button
