@@ -7,6 +7,7 @@ const countryCodes = [
   { code: "+91", country: "India" },
   { code: "+1", country: "USA" },
   { code: "+44", country: "UK" },
+  // Add more countries as needed
 ];
 
 export default function LoginPage() {
@@ -19,7 +20,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    setMessage("");
     if (!phone.match(/^\d+$/)) return setMessage("Enter a valid phone number");
     if (!/^\d{6}$/.test(passcode)) return setMessage("Enter a valid 6-digit passcode");
 
@@ -30,16 +30,14 @@ export default function LoginPage() {
       const res = await fetch("/api/login-passcode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // ensure cookie is handled by browser
         body: JSON.stringify({ phone: fullPhone, passcode }),
+        credentials: "include", // ✅ include cookies
       });
-
       const data = await res.json();
       setLoading(false);
 
       if (data.success) {
-        // Notify AuthContext to re-check /api/me (cookie was set by server)
-        login();
+        await login(); // ✅ update auth context immediately
         router.push("/courses");
       } else {
         setMessage(data.error || "Incorrect phone or passcode");
@@ -52,7 +50,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
-      <h1 className="text-2xl font-bold mb-6">Login with Your Passcode</h1>
+      <h1 className="text-2xl font-bold mb-4">Login with Your Passcode</h1>
 
       <div className="flex mb-4 w-full max-w-xs">
         <select
@@ -79,7 +77,7 @@ export default function LoginPage() {
         type="password"
         placeholder="6-digit passcode"
         value={passcode}
-        onChange={(e) => setPasscode(e.target.value.replace(/\D/g, ""))}
+        onChange={(e) => setPasscode(e.target.value)}
         className="border rounded px-4 py-2 mb-4 w-full max-w-xs text-center"
         maxLength={6}
       />
@@ -87,13 +85,12 @@ export default function LoginPage() {
       <button
         onClick={handleLogin}
         disabled={loading}
-        className={`px-6 py-2 rounded text-white w-full max-w-xs ${
+        className={`px-6 py-2 rounded text-white ${
           loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
         }`}
       >
         {loading ? "Logging in..." : "Login"}
       </button>
-
       {message && <p className="mt-4 text-red-600 text-center">{message}</p>}
     </div>
   );
