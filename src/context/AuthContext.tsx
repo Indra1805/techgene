@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 
 type AuthContextType = {
   loggedIn: boolean | null;
-  login: () => void;
+  login: () => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 };
@@ -16,10 +16,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch("/api/me", { cache: "no-store" });
+      const res = await fetch("/api/me", {
+        method: "GET",
+        cache: "no-store",
+        credentials: "include", // ✅ include cookies on production
+      });
+
       const data = await res.json();
       setLoggedIn(data.loggedIn);
-    } catch {
+    } catch (err) {
       setLoggedIn(false);
     }
   };
@@ -28,13 +33,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
-  const login = () => {
-    checkAuth(); // re-check session after login success
+  const login = async () => {
+    // After login success, re-check auth state
+    await checkAuth();
   };
 
   const logout = async () => {
-    await fetch("/api/logout", { method: "POST" });
-    setLoggedIn(false);
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include", // ✅ include cookies
+      });
+    } catch (err) {
+      console.error("Logout failed:", err);
+    } finally {
+      setLoggedIn(false);
+    }
   };
 
   return (
