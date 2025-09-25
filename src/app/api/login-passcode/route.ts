@@ -44,24 +44,31 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Issue JWT
-    // const token = jwt.sign({ phone }, JWT_SECRET, { expiresIn: "7d" });
     const JWT_SECRET = process.env.JWT_SECRET;
     if (!JWT_SECRET) {
       throw new Error("❌ Missing JWT_SECRET in environment");
     }
 
-    const token = jwt.sign({ phone }, JWT_SECRET, { expiresIn: "7d" });
+    const accessToken = jwt.sign({ phone }, JWT_SECRET, { expiresIn: "1d" });
+    const refreshToken = jwt.sign({ phone }, JWT_SECRET, { expiresIn: "7d" });
 
     // ✅ Response with cookie
     const res = NextResponse.json({ success: true });
 
-    res.cookies.set("auth", token, {
+    res.cookies.set("auth", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // ✅ only secure on Vercel
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production", // ✅ explicitly set the value
+      path: "/",
+      maxAge: 24 * 60 * 60, // 1 day
+    });
+
+    res.cookies.set("refresh", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 7 * 24 * 60 * 60, // 7 days
     });
+
 
     return res;
   } catch (err: unknown) {

@@ -42,6 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await fetch("/api/logout", {
         method: "POST",
+        // headers: {
+        //     "x-csrf-token": getCsrfTokenFromCookie(), // helper to read cookie
+        // },
         credentials: "include", // ✅ include cookies
       });
     } catch (err) {
@@ -63,3 +66,7 @@ export function useAuth() {
   if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 }
+function getCsrfTokenFromCookie(): string {
+    throw new Error("Function not implemented.");
+}
+
