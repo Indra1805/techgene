@@ -6,6 +6,7 @@ export async function GET(req: NextRequest) {
   try {
     const token = getTokenFromRequest(req);
     const payload = verifyToken(token);
+    console.log("🍪 Cookies on /api/me:", req.cookies.getAll());
 
     if (!payload) return NextResponse.json({ loggedIn: false });
 
