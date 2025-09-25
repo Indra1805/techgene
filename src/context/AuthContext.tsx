@@ -14,17 +14,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
 
+  // ---------------- CHECK AUTH ----------------
   const checkAuth = async () => {
     try {
-      const res = await fetch("/api/me", {
-        method: "GET",
-        cache: "no-store",
-        credentials: "include", // ✅ include cookies on production
-      });
-
+      const res = await fetch("/api/me", { method: "GET", credentials: "include", cache: "no-store" });
       const data = await res.json();
       setLoggedIn(data.loggedIn);
-    } catch (err) {
+    } catch {
       setLoggedIn(false);
     }
   };
@@ -33,19 +29,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
+  // ---------------- LOGIN ----------------
   const login = async () => {
-    // After login success, re-check auth state
     await checkAuth();
   };
 
+  // ---------------- LOGOUT ----------------
   const logout = async () => {
     try {
+      const csrfToken = getCsrfTokenFromCookie();
       await fetch("/api/logout", {
         method: "POST",
-        // headers: {
-        //     "x-csrf-token": getCsrfTokenFromCookie(), // helper to read cookie
-        // },
-        credentials: "include", // ✅ include cookies
+        credentials: "include",
       });
     } catch (err) {
       console.error("Logout failed:", err);
@@ -66,7 +61,9 @@ export function useAuth() {
   if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 }
-function getCsrfTokenFromCookie(): string {
-    throw new Error("Function not implemented.");
-}
 
+// ---------------- HELPER ----------------
+function getCsrfTokenFromCookie(): string {
+  const match = document.cookie.match(new RegExp('(^| )csrf-token=([^;]+)'));
+  return match ? match[2] : '';
+}

@@ -4,10 +4,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 const countryCodes = [
-  { code: "+91", country: "India" },
+  { code: "+91", country: "IN" },
   { code: "+1", country: "USA" },
   { code: "+44", country: "UK" },
-  // Add more countries as needed
 ];
 
 export default function LoginPage() {
@@ -19,29 +18,26 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (!phone.match(/^\d+$/)) return setMessage("Enter a valid phone number");
     if (!/^\d{6}$/.test(passcode)) return setMessage("Enter a valid 6-digit passcode");
 
-    const fullPhone = `${selectedCode}${phone}`;
     setLoading(true);
-
     try {
       const res = await fetch("/api/login-passcode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: fullPhone, passcode }),
-        credentials: "include", // ✅ include cookies
+        body: JSON.stringify({ phone: `${selectedCode}${phone}`, passcode }),
+        credentials: "include",
       });
       const data = await res.json();
       setLoading(false);
 
       if (data.success) {
-        await login(); // ✅ update auth context immediately
+        await login();
         router.push("/courses");
-      } else {
-        setMessage(data.error || "Incorrect phone or passcode");
-      }
+      } else setMessage(data.error || "Incorrect phone or passcode");
     } catch (err: unknown) {
       setLoading(false);
       setMessage(err instanceof Error ? err.message : "Unexpected error");
@@ -51,46 +47,18 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
       <h1 className="text-2xl font-bold mb-4">Login with Your Passcode</h1>
-
-      <div className="flex mb-4 w-full max-w-xs">
-        <select
-          value={selectedCode}
-          onChange={(e) => setSelectedCode(e.target.value)}
-          className="border rounded-l px-2 py-2 bg-white"
-        >
-          {countryCodes.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.country} ({c.code})
-            </option>
-          ))}
-        </select>
-        <input
-          type="text"
-          placeholder="Phone number"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-          className="border rounded-r px-4 py-2 flex-1"
-        />
-      </div>
-
-      <input
-        type="password"
-        placeholder="6-digit passcode"
-        value={passcode}
-        onChange={(e) => setPasscode(e.target.value)}
-        className="border rounded px-4 py-2 mb-4 w-full max-w-xs text-center"
-        maxLength={6}
-      />
-
-      <button
-        onClick={handleLogin}
-        disabled={loading}
-        className={`px-6 py-2 rounded text-white ${
-          loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-        }`}
-      >
-        {loading ? "Logging in..." : "Login"}
-      </button>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs">
+        <div className="flex w-full">
+          <select value={selectedCode} onChange={e => setSelectedCode(e.target.value)} className="border rounded-l px-1 py-2">
+            {countryCodes.map(c => <option key={c.code} value={c.code}>{c.country} ({c.code})</option>)}
+          </select>
+          <input type="text" placeholder="Phone number" value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, ""))} className="border rounded-r px-4 py-2 flex-1"/>
+        </div>
+        <input type="password" placeholder="6-digit passcode" value={passcode} onChange={e => setPasscode(e.target.value)} className="border rounded px-4 py-2 text-center" maxLength={6}/>
+        <button type="submit" disabled={loading} className={`px-6 py-2 rounded text-white w-full ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
+      </form>
       {message && <p className="mt-4 text-red-600 text-center">{message}</p>}
     </div>
   );

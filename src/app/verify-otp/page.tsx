@@ -16,16 +16,18 @@ export default function VerifyOTPPage() {
     else setPhone(phoneParam);
   }, []);
 
-  const handleVerifyOTP = async () => {
-    if (!otp) return setMessage("Enter OTP");
-    setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp.match(/^\d{6}$/)) return setMessage("Enter a valid 6-digit OTP");
 
+    setLoading(true);
     try {
       const res = await fetch("/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone, token: otp }),
       });
+
       const data = await res.json();
       setLoading(false);
 
@@ -43,22 +45,23 @@ export default function VerifyOTPPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
       <h1 className="text-2xl font-bold mb-4">Enter OTP sent to {phone}</h1>
-      <input
-        type="text"
-        placeholder="6-digit OTP"
-        value={otp}
-        onChange={(e) => setOtp(e.target.value)}
-        className="border rounded px-4 py-2 mb-4 text-center"
-      />
-      <button
-        onClick={handleVerifyOTP}
-        disabled={loading}
-        className={`px-6 py-2 rounded text-white ${
-          loading ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"
-        }`}
-      >
-        {loading ? "Verifying..." : "Verify OTP"}
-      </button>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 items-center">
+        <input
+          type="text"
+          placeholder="6-digit OTP"
+          value={otp}
+          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+          maxLength={6}
+          className="border rounded px-4 py-2 text-center"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className={`px-6 py-2 rounded text-white ${loading ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"}`}
+        >
+          {loading ? "Verifying..." : "Verify OTP"}
+        </button>
+      </form>
       {message && <p className="mt-4 text-red-600">{message}</p>}
     </div>
   );

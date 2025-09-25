@@ -6,12 +6,12 @@ export async function GET(req: NextRequest) {
     let token = getTokenFromRequest(req);
     let payload = verifyToken(token);
 
-    // If access token expired, try refresh
     if (!payload) {
+      // Try refresh token
       const refreshRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/refresh-token`, { method: "POST", credentials: "include" });
       if (refreshRes.ok) {
-        const newToken = refreshRes.headers.get("set-cookie");
-        payload = verifyToken(newToken);
+        const data = await refreshRes.json();
+        if (data.success) payload = verifyToken(data.accessToken);
       }
     }
 

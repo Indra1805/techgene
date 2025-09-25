@@ -14,10 +14,11 @@ export default function CreatePasscodePage() {
     setPhone(params.get("phone") || "");
   }, []);
 
-  const handleCreate = async () => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (passcode.length !== 6) return setMessage("Enter 6-digit passcode");
-    setLoading(true);
 
+    setLoading(true);
     try {
       const res = await fetch("/api/create-passcode", {
         method: "POST",
@@ -27,11 +28,8 @@ export default function CreatePasscodePage() {
       const data = await res.json();
       setLoading(false);
 
-      if (data.success) {
-        router.push("/login");
-      } else {
-        setMessage(data.error || "Error");
-      }
+      if (data.success) router.push("/login");
+      else setMessage(data.error || "Error");
     } catch {
       setLoading(false);
       setMessage("Unexpected error");
@@ -41,23 +39,12 @@ export default function CreatePasscodePage() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 p-4">
       <h1 className="text-2xl font-bold mb-4">Set a 6-digit passcode</h1>
-      <input
-        type="password"
-        maxLength={6}
-        placeholder="******"
-        value={passcode}
-        onChange={(e) => setPasscode(e.target.value)}
-        className="border rounded px-4 py-2 mb-4 text-center"
-      />
-      <button
-        onClick={handleCreate}
-        disabled={loading}
-        className={`px-6 py-2 rounded text-white ${
-          loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-        }`}
-      >
-        {loading ? "Saving..." : "Save Passcode"}
-      </button>
+      <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
+        <input type="password" maxLength={6} placeholder="******" value={passcode} onChange={e => setPasscode(e.target.value)} className="border rounded px-4 py-2 text-center"/>
+        <button type="submit" disabled={loading} className={`px-6 py-2 rounded text-white ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}>
+          {loading ? "Saving..." : "Save Passcode"}
+        </button>
+      </form>
       {message && <p className="mt-4 text-red-600">{message}</p>}
     </div>
   );
