@@ -3,8 +3,7 @@ import { createClient } from "@/lib/supabaseServer";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET: string = process.env.JWT_SECRET as string; // force it to string
-
+const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   throw new Error("❌ Missing JWT_SECRET in environment");
 }
@@ -44,17 +43,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ Sign JWT with guaranteed string secret
+    // ✅ Issue JWT
+    // const token = jwt.sign({ phone }, JWT_SECRET, { expiresIn: "7d" });
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+      throw new Error("❌ Missing JWT_SECRET in environment");
+    }
+
     const token = jwt.sign({ phone }, JWT_SECRET, { expiresIn: "7d" });
 
+    // ✅ Response with cookie
     const res = NextResponse.json({ success: true });
 
-    // ✅ Set httpOnly cookie
-    res.cookies.set({
-      name: "auth",
-      value: token,
+    res.cookies.set("auth", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production", // ✅ only secure on Vercel
       sameSite: "lax",
       path: "/",
       maxAge: 7 * 24 * 60 * 60, // 7 days
@@ -63,6 +66,9 @@ export async function POST(req: NextRequest) {
     return res;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: message },
+      { status: 500 }
+    );
   }
 }
