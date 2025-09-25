@@ -1,12 +1,12 @@
-// src/app/api/verify-otp/route.ts
+// app/api/verify-otp/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabaseServer";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const phone = body?.phone as string | undefined;
-    const token = body?.token as string | undefined;
+    const phone = (body?.phone ?? "").toString().trim();
+    const token = (body?.token ?? "").toString().trim();
 
     if (!phone || !token) {
       return NextResponse.json({ success: false, error: "Phone and OTP required" }, { status: 400 });
@@ -27,11 +27,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Invalid or expired OTP" }, { status: 400 });
     }
 
-    // delete used OTP
+    // delete used OTP(s)
     await supabase.from("otps").delete().eq("id", data.id);
 
-    // return a "user" object — I assume phone is your user id; adapt as needed
-    return NextResponse.json({ success: true, user: { id: phone } });
+    // success — return success and the phone (we'll redirect client with phone param)
+    return NextResponse.json({ success: true, phone });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ success: false, error: message }, { status: 500 });
