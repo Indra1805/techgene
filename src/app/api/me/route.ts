@@ -3,7 +3,7 @@ import { getTokenFromRequest, verifyToken } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
-    let token = getTokenFromRequest(req);
+    const token = getTokenFromRequest(req);
     let payload = verifyToken(token);
 
     if (!payload) {
